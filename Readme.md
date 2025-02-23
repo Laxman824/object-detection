@@ -1,5 +1,5 @@
 ## Streamlit App
-Visit the live demo: [Object Detection App](your-streamlit-url)
+Visit the live demo: [Object Detection App](https://object-detection-api.streamlit.app/)
 
 ### Local Development
 1. Install dependencies:
