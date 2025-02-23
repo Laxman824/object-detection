@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: object_counter
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  tensorflow:
+    image: tensorflow/serving:latest
+    volumes:
+      - ./tmp/model:/models
+    environment:
+      - MODEL_NAME=rfcn
+      - MODEL_BASE_PATH=/models
+    ports:
+      - "8500:8500"
+      - "8501:8501"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/v1/models/rfcn"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      - DB_TYPE=postgres
+      - ENV=prod
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=object_counter
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - TFS_HOST=tensorflow
+      - TFS_PORT=8501
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tensorflow:
+        condition: service_healthy
